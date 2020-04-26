@@ -34,22 +34,21 @@
         // DOM element where the Timeline will be attached
         var container = document.getElementById('visualization');
 
-        var parsedData = Papa.parse(contents.slice(1));
+        var parsedData = Papa.parse(contents);
         // Create a DataSet (allows two way data-binding)
         var timelineItems = [];
         var index = 1;
-        parsedData.data.forEach(row => {
+        parsedData.data.slice(1, 500).forEach(row => {
             if (row.length === 13) {
-                console.log(row[0]);
                 timelineItems.push({id: index, content: row[2], start: row[0]});
                 index++;
             }
         });
 
-        var items = new vis.DataSet([timelineItems]);
+        var items = new vis.DataSet(timelineItems);
 
         // Configuration for the Timeline
-        var options = {};
+        var options = {start: '01-01-1900', end:'01-01-2010'};
         // Create a Timeline
         var timeline = new vis.Timeline(container, items, options);
     }
