@@ -1,0 +1,64 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <title>Timeline | Basic demo</title>
+
+    <style type="text/css">
+        body, html {
+            font-family: sans-serif;
+        }
+    </style>
+    <script src="lib/papaparse.min.js"></script>
+    <script src="lib/visjs/dist/vis.js"></script>
+    <link href="lib/visjs/dist/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<input type="file" id="file-input"/>
+<div id="visualization"></div>
+<script type="text/javascript">
+    function readSingleFile(e) {
+        var file = e.target.files[0];
+        if (!file) {
+            return;
+        }
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            var contents = e.target.result;
+            displayContents(contents);
+        };
+        reader.readAsText(file);
+    }
+
+    function displayContents(contents) {
+
+        // DOM element where the Timeline will be attached
+        var container = document.getElementById('visualization');
+
+        var parsedData = Papa.parse(contents.slice(1));
+        // Create a DataSet (allows two way data-binding)
+        var timelineItems = [];
+        var index = 1;
+        parsedData.data.forEach(row => {
+            if (row.length === 13) {
+                console.log(row[0]);
+                timelineItems.push({id: index, content: row[2], start: row[0]});
+                index++;
+            }
+        });
+
+        var items = new vis.DataSet([timelineItems]);
+
+        // Configuration for the Timeline
+        var options = {};
+        // Create a Timeline
+        var timeline = new vis.Timeline(container, items, options);
+    }
+
+    document.getElementById('file-input')
+        .addEventListener('change', readSingleFile, false);
+
+
+</script>
+
+</body>
+</html>
