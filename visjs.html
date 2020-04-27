@@ -8,22 +8,22 @@
             font-family: sans-serif;
         }
     </style>
-    <script src="lib/papaparse.min.js"></script>
-    <script src="lib/visjs/dist/vis.js"></script>
-    <link href="lib/visjs/dist/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css"/>
+    <script type="text/javascript" src="//unpkg.com/papaparse@latest/papaparse.min.js"></script>
+    <script src="//unpkg.com/vis-timeline@latest/standalone/umd/vis-timeline-graph2d.min.js"></script>
+    <link href="//unpkg.com/vis-timeline@latest/styles/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <input type="file" id="file-input"/>
 <div id="visualization"></div>
 <script type="text/javascript">
     function readSingleFile(e) {
-        var file = e.target.files[0];
+        let file = e.target.files[0];
         if (!file) {
             return;
         }
-        var reader = new FileReader();
-        reader.onload = function (e) {
-            var contents = e.target.result;
+        let reader = new FileReader();
+        reader.onload = function () {
+            let contents = reader.result;
             displayContents(contents);
         };
         reader.readAsText(file);
@@ -32,12 +32,12 @@
     function displayContents(contents) {
 
         // DOM element where the Timeline will be attached
-        var container = document.getElementById('visualization');
+        let container = document.getElementById('visualization');
 
-        var parsedData = Papa.parse(contents);
+        let parsedData = Papa.parse(contents);
         // Create a DataSet (allows two way data-binding)
-        var timelineItems = [];
-        var index = 1;
+        let timelineItems = [];
+        let index = 1;
         parsedData.data.slice(1, 500).forEach(row => {
             if (row.length === 13) {
                 timelineItems.push({id: index, content: row[2], start: row[0]});
@@ -45,12 +45,12 @@
             }
         });
 
-        var items = new vis.DataSet(timelineItems);
+        let items = new vis.DataSet(timelineItems);
 
         // Configuration for the Timeline
-        var options = {start: '01-01-1900', end:'01-01-2010'};
+        let options = {start: '01-01-1905', end:'01-01-1945'};
         // Create a Timeline
-        var timeline = new vis.Timeline(container, items, options);
+        new vis.Timeline(container, items, options);
     }
 
     document.getElementById('file-input')
