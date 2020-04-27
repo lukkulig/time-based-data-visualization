@@ -35,13 +35,17 @@
         let container = document.getElementById('visualization');
 
         let parsedData = Papa.parse(contents);
+
+        let groups = new vis.DataSet([
+            { id: 0, content: "Group 1" },
+            { id: 1, content: "Group 2" },
+        ]);
         // Create a DataSet (allows two way data-binding)
         let timelineItems = [];
-        let index = 1;
-        parsedData.data.slice(1, 500).forEach(row => {
+        parsedData.data.slice(1, 500).forEach((row, i) => {
             if (row.length === 13) {
-                timelineItems.push({id: index, content: row[2], start: row[0]});
-                index++;
+                console.log(i % 2);
+                timelineItems.push({id: i, content: row[2], start: row[0], group: (i % 2)});
             }
         });
 
@@ -50,7 +54,7 @@
         // Configuration for the Timeline
         let options = {start: '01-01-1905', end:'01-01-1945'};
         // Create a Timeline
-        new vis.Timeline(container, items, options);
+        new vis.Timeline(container, items, groups, options);
     }
 
     document.getElementById('file-input')
