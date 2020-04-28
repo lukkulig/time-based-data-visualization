@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="bower_components/raphael/raphael.min.js"></script>
+    <script src="bower_components/underscore/underscore-min.js"></script>
+    <script src="bower_components/js-sequence-diagrams/dist/sequence-diagram-min.js"></script>
+</head>
+<body>
+<div id="diagram"></div>
+<script>
+    const email1 = 'email1@example.com';
+    const email2 = 'email2@example.com';
+    const email3 = 'email3@example.com';
+    const diagram = `
+        Title: Emails visualization
+        participant ${email1}
+        participant ${email2}
+        participant ${email3}
+        Note left of ${email1}: 16.04
+        ${email1}->${email2}: Attachment x.zip
+        Note left of ${email1}: 17.04
+        ${email2}->${email3}: FWD: x.zip
+        Note left of ${email1}: 21.04
+        ${email3}->${email1}: reply
+    `;
+    var d = Diagram.parse(diagram);
+    var options = {theme: 'simple'};
+    d.drawSVG('diagram', options);
+</script>
+</body>
+</html>
