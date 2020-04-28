@@ -1,0 +1,92 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <title>Timeline | Basic demo</title>
+
+    <style type="text/css">
+        body, html {
+            font-family: sans-serif;
+        }
+    </style>
+    <script type="text/javascript" src="//unpkg.com/papaparse@latest/papaparse.min.js"></script>
+    <script type="text/javascript" src="//unpkg.com/vis-timeline@latest/standalone/umd/vis-timeline-graph2d.min.js"></script>
+    <link href="//unpkg.com/vis-timeline@latest/styles/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<input type="file" id="file-input"/>
+<div id="visualization"></div>
+<script type="text/javascript">
+
+    function readSingleFile(e) {
+        let file = e.target.files[0];
+        if (!file) {
+            return;
+        }
+        let reader = new FileReader();
+        reader.onload = function () {
+            let contents = reader.result;
+            displayContents(contents);
+        };
+        reader.readAsText(file);
+    }
+
+    function displayContents(contents) {
+
+        // DOM element where the Timeline will be attached
+        let container = document.getElementById('visualization');
+
+        let parsedData = Papa.parse(contents).data.slice(1, 500);
+
+        let timelineGroups = [{id: 0, content: "Decades", subgroupStack: "false", order: 0}];
+        let timelineItems = [];
+        for (const i of Array(5).keys()) {
+            timelineItems.push({
+                id: i, content: "19" + i + "0s", start: new Date(1900 + (i * 10), 0),
+                end: new Date(1909 + (i * 10), 11), group: 0, type: "range", className: "range"
+            });
+        }
+        let index = timelineItems.length;
+        let fatalitiesMap = new Map();
+
+        const maxFatalities = Math.max.apply(Math, parsedData.map(e => e[10]));
+        parsedData.forEach((row, i) => {
+            if (row.length === 13) {
+                let groupName = "Unknown fatalities";
+                let groupOrder = 1;
+                if (row[10] !== "") {
+                    groupName = row[10] + " fatalities";
+                    groupOrder = parseInt(row[10]) + 2;
+                }
+                if (!fatalitiesMap.has(groupName)) {
+                    fatalitiesMap.set(groupName, groupOrder);
+                    const groupReverseOrder =  maxFatalities + 2 - groupOrder;
+                    timelineGroups.push({id: groupOrder, content: groupName, subgroupStack: "true", order: groupReverseOrder});
+                }
+                timelineItems.push({
+                    id: index + i,
+                    content: row[2],
+                    start: row[0],
+                    group: fatalitiesMap.get(groupName)
+                });
+            }
+        });
+
+
+        let items = new vis.DataSet(timelineItems);
+        let groups = new vis.DataSet(timelineGroups);
+
+        // Configuration for the Timeline
+        let options = {min: '01-01-1905', start: '01-01-1905', max: '01-01-1945', end: '01-01-1945', groupOrder: 'order' };
+        // Create a Timeline
+        new vis.Timeline(container, items, groups, options);
+    }
+
+    document.getElementById('file-input')
+        .addEventListener('change', readSingleFile, false);
+
+
+</script>
+
+</body>
+</html>
