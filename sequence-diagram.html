@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>js-sequence-diagram | Basic demo</title>
     <script src="bower_components/raphael/raphael.min.js"></script>
     <script src="bower_components/underscore/underscore-min.js"></script>
     <script src="bower_components/js-sequence-diagrams/dist/sequence-diagram-min.js"></script>
@@ -25,8 +25,8 @@
         Note left of ${email1}: 21.04
         ${email3}->${email1}: reply
     `;
-    var d = Diagram.parse(diagram);
-    var options = {theme: 'simple'};
+    let d = Diagram.parse(diagram);
+    let options = {theme: 'simple'};
     d.drawSVG('diagram', options);
 </script>
 </body>

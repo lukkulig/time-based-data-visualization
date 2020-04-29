@@ -1,0 +1,110 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>jQuery.Timeline | Basic demo</title>
+    <style type="text/css">
+        body, html {
+            font-family: sans-serif;
+            overflow-x: hidden;
+        }
+    </style>
+    <script type="text/javascript" src="//unpkg.com/jquery@latest/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="//unpkg.com/papaparse@latest/papaparse.min.js"></script>
+    <script type="text/javascript" src="//unpkg.com/jq-timeline@latest/dist/jquery.timeline.min.js"></script>
+    <link href="//unpkg.com/jq-timeline@latest/dist/jquery.timeline.min.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<input type="file" id="file-input" style='width:100%'/>
+<div id="myTimeline" style="margin:auto 10px">
+    <ul id="timelineEvents" class="timeline-events"></ul>
+</div>
+<div class="timeline-event-view"></div>
+<script type="module">
+    import {readSingleFile} from "./scripts/functions.js";
+
+    function displayContents(contents) {
+        let parsedData = Papa.parse(contents).data.slice(1, -1);
+
+        let timelineGroups = [{id: 1, label: "Decades"}];
+        parsedData.forEach((row) => {
+            if (row.length === 13) {
+                let groupName = "Unknown fatalities";
+                let groupOrder = 2;
+                if (row[10] !== "") {
+                    groupName = row[10] + " fatalities";
+                    groupOrder = parseInt(row[10]) + 3;
+                }
+                if (timelineGroups.filter(e => e.label === groupName).length === 0) {
+                    timelineGroups.push({id: groupOrder, label: groupName});
+                }
+            }
+        });
+        timelineGroups = timelineGroups.sort((a, b) => a.id - b.id).map(e => e.label);
+        let timelineItems = [];
+
+        let startDatetime = "01/01/1905";
+        let endDatetime = "01/01/2010";
+        const round = (n, to) => n - n % to;
+        for (let i = new Date(startDatetime); i < new Date(endDatetime); i.setFullYear(i.getFullYear() + 10)) {
+            let startDecade = new Date(round(i.getFullYear(), 10), 0, 1);
+            let endDecade = new Date(round(i.getFullYear(), 10) + 10, 0, 0);
+            timelineItems.push($('<li data-timeline-node="{ ' + 'start:\'' + startDecade + '\', '
+                + 'end:\'' + endDecade + '\', row: ' + 1 + ', label: \'' + startDecade.getFullYear() + 's\'}"></li>'));
+        }
+
+        parsedData.forEach((row) => {
+            if (row.length === 13) {
+                let groupName = row[10] !== "" ? row[10] + " fatalities" : "Unknown fatalities";
+                let start = new Date(row[0]).toISOString().slice(0, 10);
+                let rowValue = timelineGroups.indexOf(groupName) + 1;
+                timelineItems.push($('<li data-timeline-node="{ start:\'' + start + '\', row: ' + rowValue
+                    + ', label: \'' + row[2] + '\'}"></li>'));
+            }
+        });
+
+        timelineGroups = timelineGroups.map(e => "<label>" + e + "</label>");
+
+        let rulerOptions = {
+            lines: ["year"],
+            locale: "en-US",
+            format: {
+                timeZone: "UTC", year: "numeric"
+            }
+        };
+
+        $('#timelineEvents').append(timelineItems);
+        $('#myTimeline').Timeline({
+            type: "mixed",
+            startDatetime: startDatetime,
+            endDatetime: endDatetime,
+            scale: "year",
+            headline: {
+                display: true,
+                title: "jQuery.Timeline | Basic demo",
+                range: true,
+                locale: "en-US",
+                format: {
+                    custom: "%b %d, %Y"
+                }
+            },
+            rows: timelineGroups.length,
+            sidebar: {
+                sticky: true,
+                list: timelineGroups
+            },
+            rangeAlign: "begin",
+            minGridSize: 40,
+            ruler: {
+                top: rulerOptions,
+                bottom: rulerOptions
+            }
+        });
+    }
+
+    $('#file-input').change('change', e => readSingleFile(e, displayContents));
+
+</script>
+
+</body>
+</html>
