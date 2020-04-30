@@ -85,9 +85,11 @@
                 const groupName = row[10] !== "" ? row[10] + " fatalities" : "Unknown fatalities";
                 const start = new Date(row[0]).toISOString().slice(0, 10);
                 const rowValue = timelineGroupLabels.indexOf(groupName) + 1;
+                const label = row[6] !== "" ? row[6] : "Missing aircraft name";
+                const content = row[12] !== "" ? row[12] : "Missing description";
                 timelineItems.push($('<li data-timeline-node="{ start:\'' + start + '\', row: ' + rowValue
-                    + ', label: \'' + row[2] + '\', size: \'large\', bdColor: \'#a37574\',' + popoverAttr
-                    + '}"></li>'));
+                    + ', label: \'' + label + '\', content: \'' + content + '\', size: \'large\', bdColor: \'#a37574\','
+                    + popoverAttr + '}"></li>'));
             }
         });
 
