@@ -1,0 +1,148 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>jQuery.Timeline | Basic demo</title>
+    <style type="text/css">
+        body, html {
+            font-family: sans-serif;
+            overflow-x: hidden;
+        }
+    </style>
+    <script type="text/javascript" src="//unpkg.com/jquery@latest/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="//unpkg.com/papaparse@latest/papaparse.min.js"></script>
+    <script type="text/javascript" src="//unpkg.com/jq-timeline@latest/dist/jquery.timeline.min.js"></script>
+    <script type="text/javascript" src="//unpkg.com/popper.js@latest/dist/umd/popper.min.js"></script>
+    <script type="text/javascript" src="//unpkg.com/bootstrap@latest/dist/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="//unpkg.com/jq-timeline@latest/dist/jquery.timeline.min.css"/>
+    <link rel="stylesheet" type="text/css" href="//unpkg.com/bootstrap@latest/dist/css/bootstrap.min.css"/>
+</head>
+<body>
+<input type="file" id="file-input" style='width:100%'/>
+<div id="timeline" style="margin:auto 10px">
+    <ul id="timeline-events" class="timeline-events"></ul>
+</div>
+<div class="modal fade" id="my-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="timeline-event-view"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="custom-loader"></div>
+<script type="module">
+    import {readSingleFile} from "./scripts/functions.js";
+
+    const popoverAttr = "extend: { toggle: 'popover', placement: 'bottom', trigger: 'hover' }";
+    const modalAttr = "extend: {toggle: 'modal', target: '#my-modal' }";
+
+    function getRelationsDemoData() {
+        let relationsDemoData = [];
+        relationsDemoData.push($('<li data-timeline-node="{ start:\'1906-01-01\',content:\'Content 1\', row: 1 ,'
+            + popoverAttr + '}">Label 1</li>'));
+        relationsDemoData.push($('<li data-timeline-node="{ start:\'1907-01-01\',content:\'Content 2\', row: 2 ,'
+            + modalAttr + '}">Label 2</li>'));
+        return relationsDemoData;
+    }
+
+    function displayContents(contents) {
+        const parsedData = Papa.parse(contents).data.slice(1, 3000);
+
+        let timelineGroups = [
+            {id: 1, label: "Relations demo 1"},
+            {id: 2, label: "Relations demo 2"}
+        ];
+        parsedData.forEach((row) => {
+            if (row.length === 13) {
+                let groupName = "Unknown fatalities";
+                let groupOrder = 3;
+                if (row[10] !== "") {
+                    groupName = row[10] + " fatalities";
+                    groupOrder = parseInt(row[10]) + 4;
+                }
+                if (timelineGroups.filter(e => e.label === groupName).length === 0) {
+                    timelineGroups.push({id: groupOrder, label: groupName});
+                }
+            }
+        });
+        let timelineGroupLabels = timelineGroups.sort((a, b) => a.id - b.id).map(e => e.label);
+
+        let timelineItems = [];
+        console.log(parsedData);
+        parsedData.forEach((row) => {
+            if (row.length === 13) {
+                const groupName = row[10] !== "" ? row[10] + " fatalities" : "Unknown fatalities";
+                const start = new Date(row[0]).toISOString().slice(0, 10);
+                const rowValue = timelineGroupLabels.indexOf(groupName) + 1;
+                const label = row[6] !== "" ? row[6] : "Missing aircraft name";
+                const content = row[12] !== "" ? row[12] : "Missing description";
+                timelineItems.push($('<li data-timeline-node="{ start:\'' + start + '\', row: ' + rowValue
+                    + ', label: \'' + label + '\', content: \'' + content + '\', size: \'large\', bdColor: \'#a37574\','
+                    + popoverAttr + '}"></li>'));
+            }
+        });
+
+        timelineGroupLabels = timelineGroupLabels.map(e => "<label>" + e + "</label>");
+        timelineItems = timelineItems.concat(getRelationsDemoData());
+
+
+        const startDatetime = "01/01/1905";
+        const endDatetime = "01/01/2010";
+        const rulerOptions = {
+            lines: ["year"],
+            format: {
+                year: "numeric"
+            }
+        };
+
+        $('#timeline-events').append(timelineItems);
+        $('#timeline').Timeline({
+            type: "point",
+            startDatetime: startDatetime,
+            endDatetime: endDatetime,
+            scale: "year",
+            headline: {
+                display: true,
+                title: "jQuery.Timeline | Basic demo",
+                range: true,
+                format: {
+                    custom: "%b %d, %Y"
+                }
+            },
+            rows: timelineGroupLabels.length,
+            sidebar: {
+                sticky: true,
+                list: timelineGroupLabels
+            },
+            rangeAlign: "begin",
+            minGridSize: 40,
+            ruler: {
+                top: rulerOptions,
+                bottom: rulerOptions
+            },
+            debug: false
+        });
+    }
+
+    $('#my-modal').on('shown.bs.modal', function () {
+        $(this).find('.modal-title').empty().append($(this).find('.jqtl-event-title').html()).end()
+            .find('.jqtl-event-title').remove().end()
+            .find('.modal-body').css('opacity', '1')
+    })
+
+    $('#file-input').change('change', e => readSingleFile(e, displayContents));
+
+</script>
+</body>
+</html>

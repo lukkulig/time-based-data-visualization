@@ -1,8 +1,8 @@
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
-    <title>Timeline | Basic demo</title>
-
+    <meta charset="UTF-8">
+    <title>vis-timeline | Basic demo</title>
     <style type="text/css">
         body, html {
             font-family: sans-serif;
@@ -16,20 +16,8 @@
 <body>
 <input type="file" id="file-input"/>
 <div id="visualization"></div>
-<script type="text/javascript">
-
-    function readSingleFile(e) {
-        let file = e.target.files[0];
-        if (!file) {
-            return;
-        }
-        let reader = new FileReader();
-        reader.onload = function () {
-            let contents = reader.result;
-            displayContents(contents);
-        };
-        reader.readAsText(file);
-    }
+<script type="module">
+    import {readSingleFile} from "./scripts/functions.js";
 
     function displayContents(contents) {
 
@@ -83,7 +71,7 @@
     }
 
     document.getElementById('file-input')
-        .addEventListener('change', readSingleFile, false);
+        .addEventListener('change', e => readSingleFile(e, displayContents), false);
 
 
 </script>
