@@ -8,6 +8,7 @@
             font-family: sans-serif;
             overflow-x: hidden;
         }
+        #my-modal .modal-body { opacity: 0; transition: all 0.5s ease; }
     </style>
     <script type="text/javascript" src="https://unpkg.com/jquery@latest/dist/jquery.min.js"></script>
     <script type="text/javascript" src="https://unpkg.com/papaparse@latest/papaparse.min.js"></script>
@@ -49,10 +50,22 @@
 
     function getRelationsDemoData() {
         let relationsDemoData = [];
-        relationsDemoData.push($('<li data-timeline-node="{ start:\'1906-01-01\',content:\'Content 1\', row: 1 ,'
-            + popoverAttr + '}">Label 1</li>'));
-        relationsDemoData.push($('<li data-timeline-node="{ start:\'1907-01-01\',content:\'Content 2\', row: 2 ,'
-            + modalAttr + '}">Label 2</li>'));
+        relationsDemoData.push($('<li data-timeline-node="{id:1, start:\'1906-01-01\',content:\'Content 1-1\', row: 1,' +
+            'bdColor: \'Tomato\', size: \'large\', relation:{after:2, linecolor:\'Tomato\'},' + popoverAttr + '}">Label 1</li>'));
+        relationsDemoData.push($('<li data-timeline-node="{id:2, start:\'1909-01-01\',content:\'Content 1-2\', row: 1,' +
+            'bdColor: \'Tomato\', size: \'large\', relation:{after:3, linecolor:\'Tomato\'},' + popoverAttr + '}">Label 1-2</li>'));
+        relationsDemoData.push($('<li data-timeline-node="{id:3, start:\'1912-01-01\',content:\'Content 1-3\', row: 1,' +
+            'bdColor: \'Tomato\', size: \'small\', relation:{after:4, linecolor:\'Tomato\'},' + modalAttr + '}">Label 1-3</li>'));
+        relationsDemoData.push($('<li data-timeline-node="{id:4, start:\'1915-01-01\',content:\'Content 1-4\', row: 1,' +
+            'bdColor: \'Tomato\', size: \'small\', relation:{after:5, linecolor:\'Tomato\'},' + popoverAttr + '}">Label 1-4</li>'));
+        relationsDemoData.push($('<li data-timeline-node="{id:5, start:\'1917-01-01\',content:\'Content 1-5\', row: 1,' +
+            'bdColor: \'Tomato\', size: \'large\', relation:{after:8, curve:true, linecolor:\'MediumSeaGreen\'},' + popoverAttr + '}">Label 1-5</li>'));
+        relationsDemoData.push($('<li data-timeline-node="{id:6, start:\'1912-01-01\',content:\'Content 2-1\', row: 2,' +
+            'bdColor: \'DodgerBlue\', size: \'large\', relation:{before:2, linecolor:\'DodgerBlue\'},' + popoverAttr + '}">Label 2-1</li>'));
+        relationsDemoData.push($('<li data-timeline-node="{id:7, start:\'1915-01-01\',content:\'Content 2-2\', row: 2,' +
+            'bdColor: \'DodgerBlue\', size: \'large\', relation:{after:5, before:6, linecolor:\'DodgerBlue\'},' + popoverAttr + '}">Label 2-2</li>'));
+        relationsDemoData.push($('<li data-timeline-node="{id:8, start:\'1919-01-01\',content:\'Content 2-3\', row: 2,' +
+            'bdColor: \'MediumSeaGreen\', size: \'large\',' + popoverAttr + '}">Label 2-3</li>'));
         return relationsDemoData;
     }
 
@@ -79,17 +92,18 @@
         let timelineGroupLabels = timelineGroups.sort((a, b) => a.id - b.id).map(e => e.label);
 
         let timelineItems = [];
-        console.log(parsedData);
         parsedData.forEach((row) => {
             if (row.length === 13) {
                 const groupName = row[10] !== "" ? row[10] + " fatalities" : "Unknown fatalities";
                 const start = new Date(row[0]).toISOString().slice(0, 10);
                 const rowValue = timelineGroupLabels.indexOf(groupName) + 1;
                 const label = row[6] !== "" ? row[6] : "Missing aircraft name";
-                const content = row[12] !== "" ? row[12] : "Missing description";
+                let content = row[12] !== "" ? row[12] : "Missing description";
                 timelineItems.push($('<li data-timeline-node="{ start:\'' + start + '\', row: ' + rowValue
-                    + ', label: \'' + label + '\', content: \'' + content + '\', size: \'large\', bdColor: \'#a37574\','
-                    + popoverAttr + '}"></li>'));
+                    + ',' + popoverAttr + '}">'
+                    + '<span class="event-label">' + label + '</span>'
+                    + '<span class="event-content">' + content + '</span>'
+                    + '</li>'));
             }
         });
 
