@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TimelineJS Demo</title>
+    <link title="timeline-styles" rel="stylesheet"
+          href="https://cdn.knightlab.com/libs/timeline3/latest/css/timeline.css">
+    <script type="text/javascript" src="https://unpkg.com/papaparse@latest/papaparse.min.js"></script>
+    <script src="https://cdn.knightlab.com/libs/timeline3/latest/js/timeline.js"></script>
+</head>
+<body>
+<input type="file" id="file-input" style='width:100%'/>
+<div id='timeline-embed' style="width: 100%; height: 600px"></div>
+<script type="module">
+    import {readSingleFile} from "./scripts/functions.js";
+
+    function calculateGroup(fatalities) {
+        let group;
+        fatalities = parseInt(fatalities);
+        switch (true) {
+            case fatalities === 0:
+                group = "No fatalities";
+                break;
+            case 1 <= fatalities && fatalities <= 100:
+                group = "1 - 100 fatalities";
+                break;
+            case 101 <= fatalities && fatalities <= 200:
+                group = "101 - 200 fatalities";
+                break;
+            case 201 <= fatalities && fatalities <= 300:
+                group = "201 - 300 fatalities";
+                break;
+            case 301 <= fatalities && fatalities <= 400:
+                group = "301 - 400 fatalities";
+                break;
+            case 401 <= fatalities && fatalities <= 500:
+                group = "401 - 500 fatalities";
+                break;
+            case 501 <= fatalities:
+                group = "More than 500 fatalities";
+                break;
+            default:
+                group = "Unknown fatalities";
+                break;
+        }
+        return group;
+    }
+
+    function getAsTextLine(title, value) {
+        if (value === "") {
+            return value;
+        }
+        return `<h6 style="color:darkgrey; display: inline; line-height:40px;">${title}</h6> <h6 style="display: inline;">${value}</h6><br>`;
+    }
+
+    function displayContents(contents) {
+        let parsedData = Papa.parse(contents).data.slice(1, 1300);
+
+        let events = [];
+        parsedData.forEach(row => {
+            if (row.length === 13) {
+                let date = row[0].split("/");
+                let time = row[1];
+                let location = row[2];
+                let operator = row[3];
+                let route = row[4];
+                let aircraft = row[6];
+                let peopleAboard = row[9];
+                let fatalities = row[10];
+                let summary = row[12];
+                let text = "<br>";
+                [["Time", time], ["Operator", operator], ["Route", route],
+                    ["Aircraft", aircraft], ["People aboard", peopleAboard], ["Fatalities", fatalities]].forEach(data => {
+                    text += getAsTextLine(data[0], data[1]);
+                });
+                if (summary !== "") {
+                    text += `<br><p>${summary}</p>`;
+                }
+                events.push({
+                    "start_date": {
+                        "month": date[0],
+                        "day": date[1],
+                        "year": date[2]
+                    },
+                    "text": {
+                        "headline": location,
+                        "text": text
+                    },
+                    "group": calculateGroup(fatalities)
+                })
+            }
+        });
+
+        let timeline_json = {
+            "title": {
+                "media": {
+                    "url": "https://img.thedailybeast.com/image/upload/c_crop,d_placeholder_euli9k,h_1654,w_2941,x_0,y_0/dpr_1.5/c_limit,w_1044/fl_lossy,q_auto/v1492725199/articles/2013/07/08/san-francisco-plane-crash-the-flight-214-asiana-pilots-warning/130708-irving-crash-tease_c1xlry",
+                },
+                "text": {
+                    "headline": "Airplane crashes (1908 - june 2009)",
+                    "text": "<p>This timeline shows airplane crashes registered since 1908 with additional information and description</p>"
+                }
+            },
+            "events": events
+        };
+
+        window.timeline = new TL.Timeline('timeline-embed', timeline_json);
+    }
+
+    document.getElementById('file-input')
+        .addEventListener('change', e => readSingleFile(e, displayContents), false);
+</script>
+</body>
