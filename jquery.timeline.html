@@ -57,7 +57,7 @@
     }
 
     function displayContents(contents) {
-        const parsedData = Papa.parse(contents).data.slice(1, 3000);
+        const parsedData = Papa.parse(contents).data.slice(1, -1);
 
         let timelineGroups = [
             {id: 1, label: "Relations demo 1"},
