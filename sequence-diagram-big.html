@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>js-sequence-diagram | Basic demo</title>
+    <script type="text/javascript" src="https://unpkg.com/raphael@latest/raphael.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/underscore@latest/underscore-min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/js-sequence-diagrams/1.0.6/sequence-diagram-min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/papaparse@latest/papaparse.min.js"></script>
+</head>
+<body>
+<input type="file" id="file-input" style='width:100%'/>
+<div id="diagram"></div>
+<script type="module">
+    import {readSingleFile} from "./scripts/functions.js";
+
+    function displayContents(contents) {
+        let parsedData = Papa.parse(contents).data.slice(1, 1300);
+        let diagram = 'Title: Wizualizacja przelewów bankowych\n';
+        let names = [];
+        parsedData.forEach(row => {
+            names.push(row[4]);
+            names.push(row[7]);
+        });
+        let uniqueNames = [...new Set(names)];
+        uniqueNames.forEach(name => diagram += `participant ${name}\n`);
+        let date = '';
+        parsedData.forEach(row => {
+            if (date!==row[1]) {
+                date = row[1];
+                diagram += `Note left of ${uniqueNames[0]}: ${date}\n`;
+            }
+            diagram += `${row[4]}->${row[7]}: ${row[8]}\n`;
+        });
+        let d = Diagram.parse(diagram);
+        let options = {theme: 'simple'};
+        d.drawSVG('diagram', options);
+    }
+
+    document.getElementById('file-input')
+        .addEventListener('change', e => readSingleFile(e, displayContents), false);
+</script>
+</body>
+</html>
