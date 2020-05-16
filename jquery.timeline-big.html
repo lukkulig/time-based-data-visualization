@@ -1,0 +1,125 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>jQuery.Timeline | Basic demo</title>
+    <style type="text/css">
+        body, html {
+            font-family: sans-serif;
+            overflow-x: hidden;
+        }
+    </style>
+    <script type="text/javascript" src="https://unpkg.com/jquery@latest/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/papaparse@latest/papaparse.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/jq-timeline@latest/dist/jquery.timeline.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/popper.js@latest/dist/umd/popper.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/bootstrap@latest/dist/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/jq-timeline@latest/dist/jquery.timeline.min.css"/>
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/bootstrap@latest/dist/css/bootstrap.min.css"/>
+</head>
+<body>
+<input type="file" id="file-input" style='width:100%'/>
+<div id="timeline" style="margin:auto 10px">
+    <ul id="timeline-events" class="timeline-events"></ul>
+</div>
+<div class="custom-loader"></div>
+<script type="module">
+    import {readSingleFile} from "./scripts/functions.js";
+
+    const popoverAttr = "extend: { toggle: 'popover', placement: 'bottom', trigger: 'hover' }";
+
+    function displayContents(contents) {
+        const parsedData = Papa.parse(contents).data;
+
+        let timelineGroups = [];
+        let names = [];
+        parsedData.forEach(row => {
+            names.push(row[4]);
+            names.push(row[7]);
+        });
+        let uniqueNames = [...new Set(names)];
+
+        let i = 0;
+        uniqueNames.forEach(name => {
+            i++;
+            timelineGroups.push({id: i, label: name});
+        });
+
+        let timelineItems = [];
+        parsedData.forEach(row => {
+            let nameFrom = row[4];
+            let nameTo = row[7];
+            // const startDate = new Date(row[0]).toISOString().slice(0, 10);
+            const startDate = row[0];
+            // const endDate = new Date(row[1]).toISOString().slice(0, 10);
+            const endDate = row[1];
+            const label = 'Kwota: ' + row[8];
+            const content = `
+            Nadawca: ${nameFrom}
+            Nr konta nadawcy: ${row[2]}
+            Nr roz. banku nadawcy: ${row[3]}
+            Odbiorca: ${nameFrom}
+            Nr konta odbiorcy: ${row[5]}
+            Nr roz. banku odbiorcy: ${row[6]}
+            Data zlecenia: ${row[0]}
+            Data realizacji: ${row[1]}
+            `;
+            timelineItems.push($('<li data-timeline-node="{ start:\'' + startDate + '\', row: ' + nameFrom
+                + ',' + popoverAttr + '}">'
+                + '\'bdColor: \'Tomato\''
+                + '<span class="event-label">' + label + '</span>'
+                + '<span class="event-content">' + content + '</span>'
+                + '</li>'));
+            timelineItems.push($('<li data-timeline-node="{ start:\'' + endDate + '\', row: ' + nameTo
+                + ',' + popoverAttr + '}">'
+                + '\'bdColor: \'DodgerBlue\''
+                + '<span class="event-label">' + label + '</span>'
+                + '<span class="event-content">' + content + '</span>'
+                + '</li>'));
+        });
+
+        timelineGroups = timelineGroups.map(e => "<label>" + e + "</label>");
+
+        const startDatetime = "01/05/2009";
+        const endDatetime = "10/23/2019";
+        const rulerOptions = {
+            lines: ["year"],
+            format: {
+                year: "numeric"
+            }
+        };
+
+        $('#timeline-events').append(timelineItems);
+        $('#timeline').Timeline({
+            type: "point",
+            startDatetime: startDatetime,
+            endDatetime: endDatetime,
+            scale: "year",
+            headline: {
+                display: true,
+                title: "jQuery.Timeline | Basic demo",
+                range: true,
+                format: {
+                    custom: "%b %d, %Y"
+                }
+            },
+            rows: timelineGroups.length,
+            sidebar: {
+                sticky: true,
+                list: timelineGroups
+            },
+            rangeAlign: "begin",
+            minGridSize: 40,
+            ruler: {
+                top: rulerOptions,
+                bottom: rulerOptions
+            },
+            debug: false
+        });
+    }
+
+    $('#file-input').change('change', e => readSingleFile(e, displayContents));
+
+</script>
+</body>
+</html>
