@@ -28,8 +28,18 @@
 
     const popoverAttr = "extend: { toggle: 'popover', placement: 'bottom', trigger: 'hover' }";
 
+    function dateToProperFormat(date) {
+        let newDate = date.split('/');
+        [0, 1].forEach(index => {
+            if (newDate[index].length === 1) {
+                newDate[index] = '0' + newDate[index];
+            }
+        });
+        return new Date(newDate.join('/')).toISOString().slice(0, 10);
+    }
+
     function displayContents(contents) {
-        const parsedData = Papa.parse(contents).data;
+        const parsedData = Papa.parse(contents).data.slice(1, 1000);
 
         let timelineGroups = [];
         let names = [];
@@ -44,41 +54,47 @@
             i++;
             timelineGroups.push({id: i, label: name});
         });
+        let timelineGroupLabels = timelineGroups.map(e => e.label);
 
         let timelineItems = [];
+        let id = 1;
         parsedData.forEach(row => {
             let nameFrom = row[4];
             let nameTo = row[7];
-            // const startDate = new Date(row[0]).toISOString().slice(0, 10);
-            const startDate = row[0];
-            // const endDate = new Date(row[1]).toISOString().slice(0, 10);
-            const endDate = row[1];
+            let startDate = dateToProperFormat(row[0]);
+            const endDate = dateToProperFormat(row[1]);
             const label = 'Kwota: ' + row[8];
-            const content = `
-            Nadawca: ${nameFrom}
-            Nr konta nadawcy: ${row[2]}
-            Nr roz. banku nadawcy: ${row[3]}
-            Odbiorca: ${nameFrom}
-            Nr konta odbiorcy: ${row[5]}
-            Nr roz. banku odbiorcy: ${row[6]}
-            Data zlecenia: ${row[0]}
-            Data realizacji: ${row[1]}
-            `;
-            timelineItems.push($('<li data-timeline-node="{ start:\'' + startDate + '\', row: ' + nameFrom
+            const content = 'Nadawca: ' + nameFrom + '<br/>'
+                + 'Nr konta nadawcy: ' + row[2] + '<br/>'
+                + 'Nr roz. banku nadawcy: ' + row[3] + '<br/>'
+                + 'Odbiorca: ' + nameTo + '<br/>'
+                + 'Nr konta odbiorcy: ' + row[5] + '<br/>'
+                + 'Nr roz. banku odbiorcy: ' + row[6] + '<br/>'
+                + 'Data zlecenia: ' + row[0] + '<br/>'
+                + 'Data realizacji: ' + row[1];
+            const fromRowValue = timelineGroupLabels.indexOf(nameFrom) + 1;
+            const toRowValue = timelineGroupLabels.indexOf(nameTo) + 1;
+            timelineItems.push($('<li data-timeline-node="{id:' + id
+                + ', start:\'' + startDate + '\''
+                + ', row: ' + fromRowValue
+                + ', bdColor: \'Tomato\''
+                + ', content:\'' + content + '\''
                 + ',' + popoverAttr + '}">'
-                + '\'bdColor: \'Tomato\''
-                + '<span class="event-label">' + label + '</span>'
-                + '<span class="event-content">' + content + '</span>'
+                + label
                 + '</li>'));
-            timelineItems.push($('<li data-timeline-node="{ start:\'' + endDate + '\', row: ' + nameTo
+            id++;
+            timelineItems.push($('<li data-timeline-node="{ id:' + id
+                + ', start:\'' + endDate + '\''
+                + ', row: ' + toRowValue
+                + ', bdColor: \'DodgerBlue\''
+                + ', content:\'' + content + '\''
+                + ', relation:{after:' + (id - 1) + '}'
                 + ',' + popoverAttr + '}">'
-                + '\'bdColor: \'DodgerBlue\''
-                + '<span class="event-label">' + label + '</span>'
-                + '<span class="event-content">' + content + '</span>'
+                + label
                 + '</li>'));
         });
 
-        timelineGroups = timelineGroups.map(e => "<label>" + e + "</label>");
+        timelineGroupLabels = timelineGroupLabels.map(e => "<label>" + e + "</label>");
 
         const startDatetime = "01/05/2009";
         const endDatetime = "10/23/2019";
@@ -103,10 +119,10 @@
                     custom: "%b %d, %Y"
                 }
             },
-            rows: timelineGroups.length,
+            rows: timelineGroupLabels.length,
             sidebar: {
                 sticky: true,
-                list: timelineGroups
+                list: timelineGroupLabels
             },
             rangeAlign: "begin",
             minGridSize: 40,
