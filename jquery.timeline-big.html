@@ -1,0 +1,141 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>jQuery.Timeline | Basic demo</title>
+    <style type="text/css">
+        body, html {
+            font-family: sans-serif;
+            overflow-x: hidden;
+        }
+    </style>
+    <script type="text/javascript" src="https://unpkg.com/jquery@latest/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/papaparse@latest/papaparse.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/jq-timeline@latest/dist/jquery.timeline.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/popper.js@latest/dist/umd/popper.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/bootstrap@latest/dist/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/jq-timeline@latest/dist/jquery.timeline.min.css"/>
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/bootstrap@latest/dist/css/bootstrap.min.css"/>
+</head>
+<body>
+<input type="file" id="file-input" style='width:100%'/>
+<div id="timeline" style="margin:auto 10px">
+    <ul id="timeline-events" class="timeline-events"></ul>
+</div>
+<div class="custom-loader"></div>
+<script type="module">
+    import {readSingleFile} from "./scripts/functions.js";
+
+    const popoverAttr = "extend: { toggle: 'popover', placement: 'bottom', trigger: 'hover' }";
+
+    function dateToProperFormat(date) {
+        let newDate = date.split('/');
+        [0, 1].forEach(index => {
+            if (newDate[index].length === 1) {
+                newDate[index] = '0' + newDate[index];
+            }
+        });
+        return new Date(newDate.join('/')).toISOString().slice(0, 10);
+    }
+
+    function displayContents(contents) {
+        const parsedData = Papa.parse(contents).data.slice(1, 1000);
+
+        let timelineGroups = [];
+        let names = [];
+        parsedData.forEach(row => {
+            names.push(row[4]);
+            names.push(row[7]);
+        });
+        let uniqueNames = [...new Set(names)];
+
+        let i = 0;
+        uniqueNames.forEach(name => {
+            i++;
+            timelineGroups.push({id: i, label: name});
+        });
+        let timelineGroupLabels = timelineGroups.map(e => e.label);
+
+        let timelineItems = [];
+        let id = 1;
+        parsedData.forEach(row => {
+            let nameFrom = row[4];
+            let nameTo = row[7];
+            let startDate = dateToProperFormat(row[0]);
+            const endDate = dateToProperFormat(row[1]);
+            const label = 'Kwota: ' + row[8];
+            const content = 'Nadawca: ' + nameFrom + '<br/>'
+                + 'Nr konta nadawcy: ' + row[2] + '<br/>'
+                + 'Nr roz. banku nadawcy: ' + row[3] + '<br/>'
+                + 'Odbiorca: ' + nameTo + '<br/>'
+                + 'Nr konta odbiorcy: ' + row[5] + '<br/>'
+                + 'Nr roz. banku odbiorcy: ' + row[6] + '<br/>'
+                + 'Data zlecenia: ' + row[0] + '<br/>'
+                + 'Data realizacji: ' + row[1];
+            const fromRowValue = timelineGroupLabels.indexOf(nameFrom) + 1;
+            const toRowValue = timelineGroupLabels.indexOf(nameTo) + 1;
+            timelineItems.push($('<li data-timeline-node="{id:' + id
+                + ', start:\'' + startDate + '\''
+                + ', row: ' + fromRowValue
+                + ', bdColor: \'Tomato\''
+                + ', content:\'' + content + '\''
+                + ',' + popoverAttr + '}">'
+                + label
+                + '</li>'));
+            id++;
+            timelineItems.push($('<li data-timeline-node="{ id:' + id
+                + ', start:\'' + endDate + '\''
+                + ', row: ' + toRowValue
+                + ', bdColor: \'DodgerBlue\''
+                + ', content:\'' + content + '\''
+                + ', relation:{after:' + (id - 1) + '}'
+                + ',' + popoverAttr + '}">'
+                + label
+                + '</li>'));
+        });
+
+        timelineGroupLabels = timelineGroupLabels.map(e => "<label>" + e + "</label>");
+
+        const startDatetime = "01/05/2009";
+        const endDatetime = "03/10/2009";
+        const rulerOptions = {
+            lines: ["year"],
+            format: {
+                year: "numeric"
+            }
+        };
+
+        $('#timeline-events').append(timelineItems);
+        $('#timeline').Timeline({
+            type: "point",
+            startDatetime: startDatetime,
+            endDatetime: endDatetime,
+            scale: "day",
+            headline: {
+                display: true,
+                title: "jQuery.Timeline | Basic demo",
+                range: true,
+                format: {
+                    custom: "%b %d, %Y"
+                }
+            },
+            rows: timelineGroupLabels.length,
+            sidebar: {
+                sticky: true,
+                list: timelineGroupLabels
+            },
+            rangeAlign: "begin",
+            minGridSize: 40,
+            ruler: {
+                top: rulerOptions,
+                bottom: rulerOptions
+            },
+            debug: false
+        });
+    }
+
+    $('#file-input').change('change', e => readSingleFile(e, displayContents));
+
+</script>
+</body>
+</html>
