@@ -43,7 +43,7 @@
     }
 
     function displayContents(contents) {
-        const parsedData = Papa.parse(contents).data.slice(1, 3501);
+        const parsedData = Papa.parse(contents).data.slice(1, -1);
 
         let timelineGroupLabels = [];
         let names = [];
@@ -51,7 +51,7 @@
             names.push(row[4]);
             names.push(row[7]);
         });
-        let uniqueNames = [...new Set(names)];
+        let uniqueNames = [...new Set(names)].slice(0, 10);
 
         uniqueNames.forEach(name => {
             timelineGroupLabels.push(name);
@@ -99,28 +99,30 @@
         });
 
         timelineItems.push($('<li data-timeline-node="{id:' + id
-            + ', start:\'' + "01/02/2009" + '\''
+            + ', start:\'' + "12/15/2008" + '\''
             + ', row: ' + 1
             + ', bdColor: \'Orange\''
             + ', content:\'asd\''
             + ',' + popoverAttr + '}">asd</li>'));
         id++;
         timelineItems.push($('<li data-timeline-node="{ id:' + id
-            + ', start:\'' + "01/30/2009" + '\''
+            + ', start:\'' + "04/30/2009" + '\''
             + ', row: ' + timelineGroupLabels.length
             + ', bdColor: \'Orange\''
             + ', content:\'asd\''
             + ', relation:{after:' + (id - 1) + '}'
             + ',' + popoverAttr + '}">asd</li>'));
 
+        console.log(timelineItems.length);
+
         timelineGroupLabels = timelineGroupLabels.map(e => "<label>" + e + "</label>");
 
-        const startDatetime = "01/01/2009";
-        const endDatetime = "08/31/2009";
+        const startDatetime = "12/01/2008";
+        const endDatetime = "12/31/2019";
         const rulerOptionsTop = {
-            lines: ["year", "month", "day"],
+            lines: ["lustrum", "year", "month"],
             format: {
-                year: "numeric", month: "long", day: "numeric"
+                year: "numeric", month: "long"
             }
         };
         const rulerOptionsBottom = JSON.parse(JSON.stringify(rulerOptionsTop));
@@ -131,7 +133,7 @@
             type: "point",
             startDatetime: startDatetime,
             endDatetime: endDatetime,
-            scale: "day",
+            scale: "month",
             headline: {
                 display: true,
                 title: "jQuery.Timeline | Basic demo",
@@ -151,6 +153,7 @@
                 top: rulerOptionsTop,
                 bottom: rulerOptionsBottom
             },
+            zoom: true,
             debug: false
         });
     }
