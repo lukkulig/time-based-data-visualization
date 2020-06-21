@@ -1,0 +1,112 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>vis-timeline | Basic demo</title>
+    <style type="text/css">
+        body, html {
+            font-family: sans-serif;
+        }
+    </style>
+    <script type="text/javascript" src="https://unpkg.com/papaparse@latest/papaparse.min.js"></script>
+    <script type="text/javascript"
+            src="https://unpkg.com/vis-timeline@latest/standalone/umd/vis-timeline-graph2d.min.js"></script>
+    <link href="https://unpkg.com/vis-timeline@latest/styles/vis-timeline-graph2d.min.css" rel="stylesheet"
+          type="text/css"/>
+    <link rel="stylesheet" type="text/css" href="resources/css/visjs.css">
+</head>
+<body>
+<input type="file" id="file-input"/>
+<div id="visualization"></div>
+<script type="module">
+    import {readSingleFile} from "./scripts/functions.js";
+
+    function calculateGroup(transferAmount) {
+        let group;
+        transferAmount = parseInt(transferAmount);
+        switch (true) {
+            case transferAmount <= 100:
+                group = {name: "1-100", order: 0};
+                break;
+            case 100 < transferAmount && transferAmount <= 1000:
+                group = {name: "101-1000", order: 1};
+                break;
+            case 1000 < transferAmount && transferAmount <= 10000:
+                group = {name: "1001-10000", order: 2};
+                break;
+            case 10000 < transferAmount && transferAmount <= 25000:
+                group = {name: "10000-25000", order: 3};
+                break;
+            case 25000 < transferAmount:
+                group = {name: "over 25000", order: 4};
+                break;
+            default:
+                group = {name: "Unknown transfer amount", order: 5};
+                break;
+        }
+        return group;
+    }
+
+    function displayContents(contents) {
+
+        // DOM element where the Timeline will be attached
+        let container = document.getElementById('visualization');
+
+        let parsedData = Papa.parse(contents).data.slice(1, 2000);
+
+        let timelineGroups = [];
+        let timelineItems = [];
+        let index = 0;
+        let groupsMap = new Map();
+
+        parsedData.forEach((row, i) => {
+            let group = calculateGroup(row[8]);
+            if (!groupsMap.has(group.name)) {
+                groupsMap.set(group.name, group.order);
+                timelineGroups.push({
+                    id: group.order,
+                    content: group.name,
+                    subgroupStack: "true",
+                    order: group.order
+                });
+            }
+            const content = 'Nadawca: ' + row[4] + '<br/>'
+                + 'Nr konta nadawcy: ' + row[2] + '<br/>'
+                + 'Nr roz. banku nadawcy: ' + row[3] + '<br/>'
+                + 'Odbiorca: ' + row[7] + '<br/>'
+                + 'Nr konta odbiorcy: ' + row[5] + '<br/>'
+                + 'Nr roz. banku odbiorcy: ' + row[6] + '<br/>'
+                + 'Data zlecenia: ' + row[0] + '<br/>'
+                + 'Data realizacji: ' + row[1];
+            timelineItems.push({
+                id: index + i,
+                content: row[8],
+                title: content,
+                start: row[1],
+                group: groupsMap.get(group.name)
+            });
+        });
+
+
+        let items = new vis.DataSet(timelineItems);
+        let groups = new vis.DataSet(timelineGroups);
+
+        // Configuration for the Timeline
+        let options = {
+            min: '01/05/2009',
+            start: '01/05/2009',
+            max: '10/24/2019',
+            end: '10/24/2019',
+            groupOrder: 'order'
+        };
+        // Create a Timeline
+        new vis.Timeline(container, items, groups, options);
+    }
+
+    document.getElementById('file-input')
+        .addEventListener('change', e => readSingleFile(e, displayContents), false);
+
+</script>
+
+</body>
+</html>
