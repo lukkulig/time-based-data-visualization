@@ -21,32 +21,6 @@
 <script type="module">
     import {readSingleFile} from "./scripts/functions.js";
 
-    function calculateGroup(transferAmount) {
-        let group;
-        transferAmount = parseInt(transferAmount);
-        switch (true) {
-            case transferAmount <= 100:
-                group = {name: "1-100", order: 0};
-                break;
-            case 100 < transferAmount && transferAmount <= 1000:
-                group = {name: "101-1000", order: 1};
-                break;
-            case 1000 < transferAmount && transferAmount <= 10000:
-                group = {name: "1001-10000", order: 2};
-                break;
-            case 10000 < transferAmount && transferAmount <= 25000:
-                group = {name: "10000-25000", order: 3};
-                break;
-            case 25000 < transferAmount:
-                group = {name: "over 25000", order: 4};
-                break;
-            default:
-                group = {name: "Unknown transfer amount", order: 5};
-                break;
-        }
-        return group;
-    }
-
     function displayContents(contents) {
 
         // DOM element where the Timeline will be attached
@@ -57,18 +31,20 @@
         let timelineGroups = [];
         let timelineItems = [];
         let index = 0;
+        let groupOrder = 0;
         let groupsMap = new Map();
 
         parsedData.forEach((row, i) => {
-            let group = calculateGroup(row[8]);
-            if (!groupsMap.has(group.name)) {
-                groupsMap.set(group.name, group.order);
+            let groupName = row[4];
+            if (!groupsMap.has(groupName)) {
+                groupsMap.set(groupName, groupOrder);
                 timelineGroups.push({
-                    id: group.order,
-                    content: group.name,
+                    id: groupOrder,
+                    content: groupName,
                     subgroupStack: "true",
-                    order: group.order
+                    order: groupOrder
                 });
+                groupOrder++;
             }
             const content = 'Nadawca: ' + row[4] + '<br/>'
                 + 'Nr konta nadawcy: ' + row[2] + '<br/>'
@@ -83,10 +59,9 @@
                 content: row[8],
                 title: content,
                 start: row[1],
-                group: groupsMap.get(group.name)
+                group: groupsMap.get(groupName)
             });
         });
-
 
         let items = new vis.DataSet(timelineItems);
         let groups = new vis.DataSet(timelineGroups);
