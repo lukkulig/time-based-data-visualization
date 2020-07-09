@@ -6,11 +6,15 @@
     <style type="text/css">
         body, html {
             font-family: sans-serif;
-            overflow-x: hidden;
         }
         .popover {
             width: 400px !important;
             max-width: 400px !important;
+        }
+        #timeline {
+            overflow: visible;
+            display: inline-block;
+            margin: auto 10px;
         }
     </style>
     <script type="text/javascript" src="https://unpkg.com/jquery@latest/dist/jquery.min.js"></script>
@@ -18,12 +22,14 @@
     <script type="text/javascript" src="https://unpkg.com/jq-timeline@latest/dist/jquery.timeline.min.js"></script>
     <script type="text/javascript" src="https://unpkg.com/popper.js@latest/dist/umd/popper.min.js"></script>
     <script type="text/javascript" src="https://unpkg.com/bootstrap@latest/dist/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/html2canvas@latest/dist/html2canvas.min.js"></script>
     <link rel="stylesheet" type="text/css" href="https://unpkg.com/jq-timeline@latest/dist/jquery.timeline.min.css"/>
     <link rel="stylesheet" type="text/css" href="https://unpkg.com/bootstrap@latest/dist/css/bootstrap.min.css"/>
 </head>
 <body>
 <input type="file" id="file-input" style='width:100%'/>
-<div id="timeline" style="margin:auto 10px">
+<button id="to-img">To image</button>
+<div id="timeline">
     <ul id="timeline-events" class="timeline-events"></ul>
 </div>
 <div class="custom-loader"></div>
@@ -31,6 +37,16 @@
     import {readSingleFile} from "./scripts/functions.js";
 
     const popoverAttr = "extend: { toggle: 'popover', placement: 'bottom', trigger: 'hover', html: 'true', container: 'body' }";
+
+    const div = document.querySelector("#timeline");
+    $('#to-img').click(() => {
+        html2canvas(div).then(canvas => {
+            let link = document.createElement('a');
+            link.download = 'jquery-timeline.jpeg';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+    })
 
     function dateToProperFormat(date) {
         let newDate = date.split('/');
